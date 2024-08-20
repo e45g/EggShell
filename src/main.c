@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #define RED "\033[31m"
 #define WHITE "\x1B[37m"
@@ -43,48 +45,54 @@ int egg_cd(char **args){
     return 1;
 }
 
-int egg_help(char **args){
+int egg_help(char **args __attribute__((unused))){
     info("to remove from:"); 
     info("/usr/bin");
     info("/etc/shells");
     return 1;
 }
 
-int egg_exit(char **args){
+int egg_exit(char **args __attribute__((unused))){
     info("And for my next trick, I'll disappear!\n");
     exit(1);
 }
 
-char *readline(){
-    int buffer_size = MAX_LINE_BUFSIZE;
-    char *buffer = malloc(sizeof(char) * buffer_size);
-    int position = 0;
-    int c;
-
-    if(!buffer){
-        error("Memory allocation erorr.");
-        exit(EXIT_FAILURE);
+char *egg_readline(char *prompt){
+    char *line = readline(prompt);
+    if(line && *line){
+        add_history(line);
     }
+    return line;
 
-    while(1){
-        c = getchar();
-        if(c == EOF || c == '\n'){
-            buffer[position] = '\0';
-            return buffer;
-        }else{
-            buffer[position] = c;
-        }
-        position++;
-
-        if(position >= buffer_size){
-            buffer_size += MAX_LINE_BUFSIZE;
-            buffer = realloc(buffer, buffer_size);
-            if(!buffer){
-                error("Memory reallocation error.");
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
+    /*int buffer_size = MAX_LINE_BUFSIZE;*/
+    /*char *buffer = malloc(sizeof(char) * buffer_size);*/
+    /*int position = 0;*/
+    /*int c;*/
+    /**/
+    /*if(!buffer){*/
+    /*    error("Memory allocation erorr.");*/
+    /*    exit(EXIT_FAILURE);*/
+    /*}*/
+    /**/
+    /*while(1){*/
+    /*    c = getchar();*/
+    /*    if(c == EOF || c == '\n'){*/
+    /*        buffer[position] = '\0';*/
+    /*        return buffer;*/
+    /*    }else{*/
+    /*        buffer[position] = c;*/
+    /*    }*/
+    /*    position++;*/
+    /**/
+    /*    if(position >= buffer_size){*/
+    /*        buffer_size += MAX_LINE_BUFSIZE;*/
+    /*        buffer = realloc(buffer, buffer_size);*/
+    /*        if(!buffer){*/
+    /*            error("Memory reallocation error.");*/
+    /*            exit(EXIT_FAILURE);*/
+    /*        }*/
+    /*    }*/
+    /*}*/
 }
 
 char **split(char *line){
@@ -120,7 +128,7 @@ char **split(char *line){
 }
 
 int launch(char **args){
-    pid_t cpid, wpid;
+    pid_t cpid;
     int status;
 
     cpid = fork();
@@ -137,7 +145,7 @@ int launch(char **args){
     }
     else{
         do {
-            wpid = waitpid(cpid, &status, WUNTRACED);
+            waitpid(cpid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
@@ -160,8 +168,8 @@ void loop(){
     int status = 1;
 
     do {
-        printf(CYAN SHELL_NAME " > " WHITE);
-        line = readline();     
+        /*printf(CYAN SHELL_NAME " > " WHITE);*/
+        line = egg_readline(CYAN SHELL_NAME " > " WHITE);     
         args = split(line);
         status = execute(args);
         free(line);
