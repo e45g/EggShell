@@ -16,7 +16,6 @@ OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 .DEFAULT_GOAL := run
 
 run: all
-	@echo "Running EggShell..."
 	@$(TARGET)
 
 all: directories $(TARGET)
@@ -25,10 +24,12 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)  # Ensure OBJ_DIR exists
 	$(CC) $(CFLAGS) -c $< -o $@
 
 directories:
-	@mkdir -p $(BIN_DIR) $(OBJ_DIR)
+	@mkdir -p $(BIN_DIR)
 
 clean:
 	rm -rf $(BIN_DIR) $(OBJ_DIR)
+
