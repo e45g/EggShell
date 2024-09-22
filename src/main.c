@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <readline/readline.h>
@@ -75,17 +76,33 @@ int execute(char **args){
     return launch(args);
 }
 
+char *get_path(){
+    char *path = getcwd(NULL, PATH_MAX);
+    char *home = getenv("HOME");
+
+    if(strncmp(path, home, strlen(home)) == 0){
+        char *new_path = malloc(sizeof(char) * PATH_MAX);
+        snprintf(new_path, PATH_MAX, "~%s", path+strlen(home));
+        free(path);
+        return new_path;
+    }
+
+    return path;
+}
+
 void loop() {
     char *line;
     char **args;
 
     while(1) {
-        printf(CYAN "\n[%s] " COLOR_RESET "%s", SHELL_NAME, "path");
+        char *path = get_path();
+        printf(CYAN "\n[%s] " COLOR_RESET "%s", SHELL_NAME, path);
         line = read_line(" > ");
         args = split(line);
 
         execute(args);
 
+        free(path);
         free(line);
         free(args);
     }
