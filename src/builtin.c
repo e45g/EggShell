@@ -1,3 +1,5 @@
+#include <linux/limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -24,12 +26,17 @@ int size_of_builtin_func(){
 
 
 int egg_cd(char **args){
-    if(args[1] == NULL){
-        chdir(getenv("HOME"));
+    char path[PATH_MAX];
+    if(strncmp(args[1], "~", 1) == 0){
+        snprintf(path, PATH_MAX, "%s%s", getenv("HOME"), args[1]+1);
+    } else{
+        strcpy(path, args[1]);
     }
-    else if(chdir(args[1]) != 0){
-        error("No such file or directory: %s", args[1]);
+    if(chdir(path) == -1){
+        error("cd: no such file or directory %s", path);
+        return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }
 
@@ -47,7 +54,7 @@ int egg_exit(char **args __attribute__((unused))){
 
 int egg_export(char **args __attribute__((unused))){
     if (args[1] == NULL) {
-        fprintf(stderr, "Usage: export VAR=value\n");
+        error("Usage: export VAR=value");
         return EXIT_FAILURE;
     }
 
@@ -58,11 +65,12 @@ int egg_export(char **args __attribute__((unused))){
         char *value = equals_sign + 1;
         if (setenv(name, value, 1) == -1) {
             error("Error setenv");
+            return EXIT_FAILURE;
         } else{
             info("Exported %s=%s", name, value);
         }
     } else {
-        fprintf(stderr, "Usage: export VAR=value\n");
+        error("Usage: export VAR=value");
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

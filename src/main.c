@@ -1,4 +1,5 @@
 #include <linux/limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <readline/readline.h>
@@ -27,6 +28,7 @@ char **split(char *line){
 
     if(!token){
         error("Error allocating memory for *token.");
+        exit(EXIT_FAILURE);
     }
 
     token = strtok(line, TOKEN_DELIM);
@@ -39,6 +41,7 @@ char **split(char *line){
 
             if(!tokens){
                 error("Error reallocating memory for **tokens.");
+                exit(EXIT_FAILURE);
             }
         }
         token = strtok(NULL, TOKEN_DELIM);
@@ -54,9 +57,11 @@ int launch(char **args){
     cpid = fork();
     if(cpid == -1){
         error("Error forking process.");
+        return EXIT_FAILURE;
     } else if(cpid == 0) {
         if(execvp(args[0], args) < 0){
             error("Command not found: %s", args[0]);
+            return EXIT_FAILURE;
         }
     } else{
         do {
@@ -108,7 +113,12 @@ void loop() {
     }
 }
 
+void handle_kill(int sig){
+    info("\nsignal %d\n", sig);
+}
+
 int main(){
+    signal(SIGINT, handle_kill);
     loop();
     return EXIT_SUCCESS;
 }

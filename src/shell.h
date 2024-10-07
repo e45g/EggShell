@@ -12,10 +12,10 @@
 #define TOKEN_DELIM " \t\r\n\a"
 #define SHELL_NAME "EggShell"
 
+
 #define error(...) fprintf(stderr, RED "[%s] ", SHELL_NAME); \
                    fprintf(stderr, __VA_ARGS__); \
-                   fprintf(stderr, COLOR_RESET "\n"); \
-                   exit(EXIT_FAILURE)
+                   fprintf(stderr, COLOR_RESET "\n")
 
 #define info(...) printf(CYAN "[%s] ", SHELL_NAME); \
                   printf(COLOR_RESET __VA_ARGS__); \
